@@ -64,6 +64,41 @@ Counts tokens for a message array without generating a response.
 }
 ```
 
+### `GET /v1/models`
+
+Returns the set of model identifiers a client may request, in the OpenAI
+`/v1/models` envelope. Two consumers use it:
+
+- **[CC-Switch](../CONFIGURATION.md#using-with-cc-switch)** — its "Fetch Models"
+  button populates a model dropdown from this endpoint.
+- **Claude Code gateway model discovery** — when enabled, Claude Code calls
+  `GET /v1/models?limit=1000` and adds the results to its `/model` picker
+  (labeled "From gateway"). It reads the `display_name` field and **only
+  surfaces models whose `id` begins with `claude` or `anthropic`** — all other
+  ids are silently filtered from the picker (see
+  [Claude Code model picker](../CONFIGURATION.md#claude-code-model-picker)).
+
+The listing merges config `models` aliases, `model_overrides` keys, and — when
+a catalog is available — catalog canonical names (`provider/model`). Any value
+in the list is valid in the `model` field of `POST /v1/messages`.
+
+**Response:**
+
+```json
+{
+  "object": "list",
+  "data": [
+    { "id": "default", "object": "model", "owned_by": "opencode-go" },
+    { "id": "claude-sonnet-4-5-20250929", "object": "model", "owned_by": "opencode-zen" },
+    { "id": "opencode-go/kimi-k2.6", "object": "model", "owned_by": "opencode-go", "name": "Kimi K2.6", "display_name": "Kimi K2.6" }
+  ]
+}
+```
+
+The `limit` query parameter (sent by Claude Code) is accepted and currently
+ignored — the full list is always returned. Only `GET` is allowed; other
+methods return `405`.
+
 ### `GET /health`
 
 Returns server health status.
